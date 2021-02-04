@@ -405,14 +405,6 @@
 			<id>alfresco-private-repository</id>
 			<url>https://artifacts.alfresco.com/nexus/content/groups/private</url>
 		</repository -->
-
-		<repository>
-			<id>plugins-release</id>
-			<url>https://repo.spring.io/plugins-release/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
 		
 	</repositories>
 
@@ -441,6 +433,10 @@
 					<groupId>org.vaadin.addons</groupId>
 					<artifactId>dcharts-widget</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.social</groupId>
+					<artifactId>spring-social-facebook</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -458,6 +454,10 @@
 					<groupId>org.vaadin.addons</groupId>
 					<artifactId>dcharts-widget</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.social</groupId>
+					<artifactId>spring-social-facebook</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
@@ -471,6 +471,10 @@
 				<exclusion>
 					<groupId>org.alfresco</groupId>
 					<artifactId>alfresco-web-framework-commons</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.springframework.social</groupId>
+					<artifactId>spring-social-facebook</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
