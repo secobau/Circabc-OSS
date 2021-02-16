@@ -17,6 +17,8 @@ ARG                                                                            \
   repository=Circabc-OSS
 ARG                                                                            \
   username=academiaonline
+ARG                                                                            \
+  zip=alfresco-community-4.2.f.zip
 WORKDIR                                                                        \
   ${dir_clone}
 RUN                                                                            \
@@ -26,6 +28,12 @@ RUN                                                                            \
       --branch                                                                 \
         ${branch}                                                              \
       --single-branch                                                          \
+  &&                                                                           \
+  cat ${repository}/${zip}.parts/x* 1> ${zip}                                  \
+  &&                                                                           \
+  unzip ${zip}                                                                 \
+  &&                                                                           \
+  mv web-server/webapps/alfresco.war ${repository}/circabc-resources/          \
                                                                                ;
 ################################################################################
 FROM                                                                           \
