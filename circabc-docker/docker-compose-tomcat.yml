@@ -22,16 +22,14 @@ services:
     ports:
       - "83:80"
   tomcat:
-    build: tomcat
-    image: tomcat-circabc
+    image: academiaonline/circabc-oss:latest-tomcat
     ports:
       - "81:8080"
     container_name: tomcat
     depends_on:
       - db
   angular:
-    build: angular
-    image: angular-circabc
+    image: academiaonline/circabc-oss:latest-angular
     ports:
         - "82:80"
     container_name: angular
@@ -45,5 +43,5 @@ services:
     volumes:
       - ./proxy/conf:/etc/nginx
     ports:
-      - 80:80
-      - 443:443
+      - 8080:80
+      - 8443:443
