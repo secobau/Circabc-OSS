@@ -24,6 +24,7 @@ WORKDIR 									\
 COPY 										\
 	.					 				\
 	.
+RUN ls
 RUN 										\
 	cat ${zip}.parts/x* 1> ${zip} 						\
 	&& 									\
