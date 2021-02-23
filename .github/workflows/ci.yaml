@@ -30,6 +30,7 @@ jobs:                                                                          #
             ${volumes}                                                         \
             ${image}                                                           \
             ${command}                                                         \
+                                                                               ;
         }                                                                      ;
         branch=$(basename $GITHUB_REF)                                         ;
         project=$(basename $GITHUB_REPOSITORY)                                 ;
