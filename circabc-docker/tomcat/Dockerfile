@@ -3,48 +3,12 @@
 #       SPDX-License-Identifier:  GPL-2.0-only                                  #
 #################################################################################
 FROM 										\
-	alpine/git:1.0.25-amd64@sha256:78e2b58fcb76d71368b961f43e02682dc1f23bc6266319e6cc21e848bf7f1b53 \
-	AS 									\
-	clone
-#################################################################################
-ARG 										\
-	branch=docker
-ARG 										\
-	dir_clone=/clone
-ARG 										\
-	hostname=github.com
-ARG 										\
-	repository=Circabc-OSS
-ARG 										\
-	username=academiaonline
-ARG 										\
-	zip=alfresco-community-4.2.f.zip
-WORKDIR 									\
-	${dir_clone}
-RUN 										\
-	git 									\
-		clone 								\
-			https://${hostname}/${username}/${repository} 		\
-			--branch 						\
-				${branch} 					\
-			--single-branch 					\
-	&& 									\
-	cat ${repository}/${zip}.parts/x* 1> ${zip} 				\
-	&& 									\
-	unzip ${zip} 								\
-	&& 									\
-	mv web-server/webapps/alfresco.war ${repository}/circabc-resources/ 	\
-										;
-#################################################################################
-FROM 										\
 	maven:3.6.3-openjdk-15@sha256:e8ab59fe2b7dc16643e8f38a2e7df7f26a72be377ab15c4224301fa9bd5ab55f \
 	AS 									\
 	build
 #################################################################################
 ARG 										\
 	dir_build=/build
-ARG 										\
-	dir_clone=/clone
 ARG 										\
 	folder_angular=circabc-docker/angular
 ARG 										\
@@ -54,13 +18,16 @@ ARG 										\
 ARG 										\
 	folder_tomcat=circabc-docker/tomcat
 ARG 										\
-	repository=Circabc-OSS
+	zip=alfresco-community-4.2.f.zip
 WORKDIR 									\
 	${dir_build}
-COPY 										\
-	--from=clone 								\
-	${dir_clone}/${repository} 						\
-	.
+RUN 										\
+	cat ${zip}.parts/x* 1> ${zip} 						\
+	&& 									\
+	unzip ${zip} 								\
+	&& 									\
+	mv web-server/webapps/alfresco.war circabc-resources/ 			\
+										;
 RUN 										\
 	mvn clean 								\
 	&& 									\
