@@ -32,6 +32,7 @@ jobs:                                                                          #
             ${command}                                                         \
                                                                                ;
         }                                                                      ;
+                                                                               #
         branch=$(basename $GITHUB_REF)                                         ;
         project=$(basename $GITHUB_REPOSITORY)                                 ;
                                                                                #
