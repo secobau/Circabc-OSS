@@ -17,10 +17,8 @@ jobs:                                                                          #
     - name: checkout                                                           #
       uses: actions/checkout@v2                                                #
     - name: test                                                               #
-      run: |                                                                   #
-
-        set -x                                                                 ;
-        
+      run: |                                                                   
+        set -x                                                                 ;       
         function _docker_run {                                                 \
           docker run                                                           \
             -d                                                                 \
@@ -32,7 +30,6 @@ jobs:                                                                          #
             ${image}                                                           \
             ${command}                                                         \
         }                                                                      ;
-        
         branch=$(basename $GITHUB_REF)                                         ;
         project=$(basename $GITHUB_REPOSITORY)                                 ;
         
