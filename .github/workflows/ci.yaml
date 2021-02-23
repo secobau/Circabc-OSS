@@ -45,7 +45,11 @@ jobs:                                                                          #
         ########################################################################
         for app in angular tomcat                                              ;
           do                                                                   \
-            docker build -t ${repository}:${release}-testing-${app} $dir/$app/ ;
+            docker build                                                       \
+              --file Dockerfile.${app}                                         \
+              --tag ${repository}:${release}-testing-${app}                    \
+              ${PWD}                                                           \
+                                                                               ;
           done                                                                 ;
         ########################################################################
         for app in angular db db_admin proxy tomcat                            ;
