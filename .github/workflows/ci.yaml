@@ -1,0 +1,354 @@
+################################################################################
+#      Copyright (C) 2020        Sebastian Francisco Colomar Bauza             #
+#      SPDX-License-Identifier:  GPL-2.0-only                                  #
+################################################################################
+name: CI                                                                       #
+on:                                                                            #
+  push:                                                                        #
+    branches:                                                                  #
+    - docker                                                                   #
+  pull_request:                                                                #
+    branches:                                                                  #
+    - docker                                                                   #
+jobs:                                                                          #
+  docker:                                                                      #
+    runs-on: ubuntu-18.04                                                      #
+    steps:                                                                     #
+    - name: checkout                                                           #
+      uses: actions/checkout@v2                                                #
+    - name: test                                                               #
+      run: |                                                                   #
+        ########################################################################
+        set -x                                                                 ;
+        ########################################################################
+        function _docker_run {                                                 \
+          docker run                                                           \
+            -d                                                                 \
+            ${environment}                                                     \
+            --name ${name}                                                     \
+            --network ${network}                                               \
+            ${ports}                                                           \
+            ${volumes}                                                         \
+            ${image}                                                           \
+            ${command}                                                         \
+        }                                                                      ;
+        ########################################################################
+        branch=$(basename $GITHUB_REF)                                         ;
+        project=$(basename $GITHUB_REPOSITORY)                                 ;
+        ########################################################################
+        dir=circabc-docker                                                     ;
+        ########################################################################
+        echo $branch | grep ^v[0-9]                                            \
+          && release=$( echo $branch | awk -F^v '{ print $2 }' )               \
+          || release=latest                                                    ;
+        ########################################################################
+        for app in angular tomcat                                              ;
+          do                                                                   \
+            docker build -t $GITHUB_REPOSITORY:$release-testing-$app           \
+              $dir/$app/                                                       ;
+          done                                                                 ;
+        ########################################################################
+        for app in angular db db_admin proxy tomcat                            ;
+          do                                                                   \
+            docker network create $app                                         ;
+          done                                                                 ;
+        ########################################################################
+        command='                                                              \
+          --lower_case_table_names=1 --transaction-isolation=READ-COMMITTED    \
+        '                                                                      ;
+        environment='                                                          \
+          -e MYSQL_ROOT_PASSWORD=password                                      \
+        '                                                                      ;
+        name=db                                                                ;
+        network=db                                                             ;
+        ports='                                                                \
+          -p 3306:3306                                                         \
+        '                                                                      ;
+        volumes='                                                              \
+          -v ./mysql/init:/docker-entrypoint-initdb.d/:ro                      \
+        '                                                                      ;
+        ########################################################################
+        image=mysql:5.6                                                        ;
+        ########################################################################
+        _docker_run                                                            ;
+        ########################################################################
+        command='                                                              \
+        '                                                                      ;
+        environment='                                                          \
+          -e PMA_ARBITRARY=1                                                   \
+          -e PMA_HOST=db                                                       \
+          -e PMA_PORT=3306                                                     \
+        '                                                                      ;
+        name=db_admin                                                          ;
+        network=db_admin                                                       ;
+        ports='                                                                \
+          -p 83:80                                                             \
+        '                                                                      ;
+        volumes='                                                              \
+        '                                                                      ;
+        ########################################################################
+        image=phpmyadmin/phpmyadmin                                            ;
+        ########################################################################
+        _docker_run                                                            ;
+        ########################################################################
+        command='                                                              \
+        '                                                                      ;
+        environment='                                                          \
+        '                                                                      ;
+        name=tomcat                                                            ;
+        network=tomcat                                                         ;
+        ports='                                                                \
+          -p 81:8080                                                           \
+        '                                                                      ;
+        volumes='                                                              \
+        '                                                                      ;
+        ########################################################################
+        image=$GITHUB_REPOSITORY:$release-testing-$name                        ;
+        ########################################################################
+        _docker_run                                                            ;
+        ########################################################################
+        command='                                                              \
+        '                                                                      ;
+        environment='                                                          \
+        '                                                                      ;
+        name=angular                                                           ;
+        network=angular                                                        ;
+        ports='                                                                \
+          -p 82:80                                                             \
+        '                                                                      ;
+        volumes='                                                              \
+        '                                                                      ;
+        ########################################################################
+        image=$GITHUB_REPOSITORY:$release-testing-$name                        ;
+        ########################################################################
+        _docker_run                                                            ;
+        ########################################################################
+        command='                                                              \
+        '                                                                      ;
+        environment='                                                          \
+        '                                                                      ;
+        name=proxy                                                             ;
+        network=proxy                                                          ;
+        ports='                                                                \
+          -p 8080:80                                                           \
+          -p 8443:443                                                          \
+        '                                                                      ;
+        volumes='                                                              \
+          -v ./proxy/conf:/etc/nginx                                           \
+        '                                                                      ;
+        ########################################################################
+        image=nginx:alpine                                                     ;
+        ########################################################################
+        _docker_run                                                            ;
+        ########################################################################
+        for app in angular db db_admin proxy tomcat                            ;
+          do                                                                   \
+            docker exec $app ps
+          done                                                                 ;
+        ########################################################################
+        for app in angular db db_admin proxy tomcat                            ;
+          do                                                                   \
+            docker logs $app
+          done                                                                 ;
+        ########################################################################
+        for app in angular db db_admin proxy tomcat                            ;
+          do                                                                   \
+            docker exec $app netstat -ltn
+          done                                                                 ;
+        ########################################################################
+        while true                                                             ;
+          do                                                                   \
+            sleep 10                                                           ;
+            docker exec hasher ps | grep ruby && break                         ;
+          done                                                                 ;
+        while true                                                             ;
+          do                                                                   \
+            sleep 10                                                           ;
+            docker exec hasher netstat -tln | grep 8080 && break               ;
+          done                                                                 ;
+        ########################################################################
+        while true                                                             ;
+          do                                                                   \
+            sleep 10                                                           ;
+            docker exec rng ps | grep python && break                          ;
+          done                                                                 ;
+        while true                                                             ;
+          do                                                                   \
+            sleep 10                                                           ;
+            docker exec rng netstat -tln | grep 8080 && break                  ;
+          done                                                                 ;
+        ########################################################################
+        while true                                                             ;
+          do                                                                   \
+            sleep 10                                                           ;
+            docker exec webui ps | grep node && break                          ;
+          done                                                                 ;
+        while true                                                             ;
+          do                                                                   \
+            sleep 10                                                           ;
+            docker ps | grep node.*8080.*webui && break                        ;
+          done                                                                 ;
+        ########################################################################
+        while true                                                             ;
+          do                                                                   \
+            sleep 10                                                           ;
+            docker exec worker ps | grep python && break                       ;
+          done                                                                 ;
+        ########################################################################
+  swarm:                                                                       #
+    env:                                                                       #
+      mode: swarm                                                              #
+    runs-on: ubuntu-18.04                                                      #
+    steps:                                                                     #
+    -                                                                          #
+      name: checkout                                                           #
+      uses: actions/checkout@v2                                                #
+    -                                                                          #
+      name: test                                                               #
+      run: |                                                                   #
+        set -x                                                                 ;
+                                                                               #
+        branch=$(basename $GITHUB_REF)                                         ;
+        project=$(basename $GITHUB_REPOSITORY)                                 ;
+                                                                               #
+        echo $branch | grep ^v[0-9]                                            \
+          && release=$( echo $branch | awk -F^v '{ print $2 }' )               \
+          || release=latest                                                    ;
+                                                                               #
+        compose=etc/$mode/manifests/$project.yaml                              ;
+        sed -i /image:.*$project/s/$release/$release-testing/ $compose         ;
+                                                                               #
+        for app in hasher rng webui worker                                     ;
+          do                                                                   \
+            docker build -t $GITHUB_REPOSITORY:$release-testing-$app $app/     ;
+          done                                                                 ;
+                                                                               #
+        docker swarm init                                                      ;
+        sed -i /node.role/s/worker/manager/ $compose                           ;
+        docker stack deploy -c $compose $project                               ;
+                                                                               #
+        for app in hasher redis webui worker                                   ;
+          do                                                                   \
+            while true                                                         ;
+              do                                                               \
+                sleep 10                                                       ;
+                docker service ls                                              \
+                |                                                              \
+                grep "$app.*replicated.*\([0-9]\)/\1" && break                 ;
+              done                                                             ;
+          done                                                                 ;
+                                                                               #
+        for app in rng                                                         ;
+          do                                                                   \
+            while true                                                         ;
+              do                                                               \
+                sleep 10                                                       ;
+                docker service ls | grep "$app.*global.*\([0-9]\)/\1" && break ;
+              done                                                             ;
+          done                                                                 ;
+                                                                               #
+  kubernetes:                                                                  #
+    env:                                                                       #
+      mode: kubernetes                                                         #
+    runs-on: ubuntu-18.04                                                      #
+    steps:                                                                     #
+    -                                                                          #
+      name: checkout                                                           #
+      uses: actions/checkout@v2                                                #
+    -                                                                          #
+      name: test                                                               #
+      run: |                                                                   #
+        set -x                                                                 ;
+                                                                               #
+        branch=$(basename $GITHUB_REF)                                         ;
+        project=$(basename $GITHUB_REPOSITORY)                                 ;
+                                                                               #
+        echo $branch | grep ^v[0-9]                                            \
+          && release=$( echo $branch | awk -F^v '{ print $2 }' )               \
+          || release=latest                                                    ;
+                                                                               #
+        compose=etc/$mode/manifests/$project.yaml                              ;
+        sed -i /image:.*$project/s/$release/$release-testing/ $compose         ;
+                                                                               #
+        for app in hasher rng webui worker                                     ;
+          do                                                                   \
+            docker build -t $GITHUB_REPOSITORY:$release-testing-$app $app/     ;
+          done                                                                 ;
+                                                                               #
+        uuid=$( md5sum $compose | cut -d\  -f1 )                               ;
+        git clone --single-branch -b v1.2                                      \
+          https://github.com/academiaonline/kubernetes $uuid                   ;
+        path=$uuid/bin/cluster/ubuntu18/install-docker-kubelet.sh              ;
+        source $path                                                           ;
+        path=$uuid/bin/cluster/ubuntu18/install-leader.sh                      ;
+        source $path                                                           ;
+        master=$( kubectl get node | grep master | awk '{ print $1 }' )        ;
+        kubectl taint node $master node-role.kubernetes.io/master:NoSchedule-  ;
+        rm -rf $uuid                                                           ;
+                                                                               #
+        sed -i /imagePullPolicy/s/Always/Never/ $compose                       ;
+        kubectl apply -f $compose                                              ;
+                                                                               #
+        for app in hasher redis webui worker                                   ;
+          do                                                                   \
+            while true                                                         ;
+              do                                                               \
+                sleep 10                                                       ;
+                kubectl get deploy | grep "$app.*\([0-9]\)/\1" && break        ;
+              done                                                             ;
+          done                                                                 ;
+                                                                               #
+        for app in rng                                                         ;
+          do                                                                   \
+            while true                                                         ;
+              do                                                               \
+                sleep 10                                                       ;
+                kubectl get ds | grep "$app.*1.*1.*1.*1.*1" && break           ;
+              done                                                             ;
+          done                                                                 ;
+                                                                               #
+        for app in hasher rng                                                  ;
+          do                                                                   \
+            while true                                                         ;
+              do                                                               \
+                sleep 10                                                       ;
+                kubectl get svc | grep "$app.*ClusterIP.*8080/TCP" && break    ;
+              done                                                             ;
+          done                                                                 ;
+                                                                               #
+        for app in redis                                                       ;
+          do                                                                   \
+            while true                                                         ;
+              do                                                               \
+                sleep 10                                                       ;
+                kubectl get svc | grep "$app.*ClusterIP.*6379/TCP" && break    ;
+              done                                                             ;
+          done                                                                 ;
+                                                                               #
+        for app in webui                                                       ;
+          do                                                                   \
+            while true                                                         ;
+              do                                                               \
+                sleep 10                                                       ;
+                kubectl get svc                                                \
+                |                                                              \
+                grep "$app.*ClusterIP.*8080/TCP" && break                      ;
+              done                                                             ;
+          done                                                                 ;
+                                                                               #
+        while true                                                             ;
+          do                                                                   \
+            sleep 10                                                           ;
+            kubectl logs deploy/webui                                          \
+            |                                                                  \
+            grep "WEBUI running on port 8080" && break                         ;
+          done                                                                 ;
+                                                                               #
+        while true                                                             ;
+          do                                                                   \
+            sleep 10                                                           ;
+            kubectl exec deploy/webui -- curl localhost:8080/index.html        \
+            |                                                                  \
+            grep "DockerCoin Miner WebUI" && break                             ;
+          done                                                                 ;
+################################################################################
