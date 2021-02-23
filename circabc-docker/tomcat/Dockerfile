@@ -21,6 +21,9 @@ ARG 										\
 	zip=alfresco-community-4.2.f.zip
 WORKDIR 									\
 	${dir_build}
+COPY 										\
+	.					 				\
+	.
 RUN 										\
 	cat ${zip}.parts/x* 1> ${zip} 						\
 	&& 									\
