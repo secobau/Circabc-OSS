@@ -18,9 +18,9 @@ jobs:                                                                          #
       uses: actions/checkout@v2                                                #
     - name: test                                                               #
       run: |                                                                   #
-        ########################################################################
+
         set -x                                                                 ;
-        ########################################################################
+        
         function _docker_run {                                                 \
           docker run                                                           \
             -d                                                                 \
@@ -32,27 +32,27 @@ jobs:                                                                          #
             ${image}                                                           \
             ${command}                                                         \
         }                                                                      ;
-        ########################################################################
+        
         branch=$(basename $GITHUB_REF)                                         ;
         project=$(basename $GITHUB_REPOSITORY)                                 ;
-        ########################################################################
+        
         dir=circabc-docker                                                     ;
-        ########################################################################
+        
         echo $branch | grep ^v[0-9]                                            \
           && release=$( echo $branch | awk -F^v '{ print $2 }' )               \
           || release=latest                                                    ;
-        ########################################################################
+        
         for app in angular tomcat                                              ;
           do                                                                   \
             docker build -t $GITHUB_REPOSITORY:$release-testing-$app           \
               $dir/$app/                                                       ;
           done                                                                 ;
-        ########################################################################
+        
         for app in angular db db_admin proxy tomcat                            ;
           do                                                                   \
             docker network create $app                                         ;
           done                                                                 ;
-        ########################################################################
+        
         command='                                                              \
           --lower_case_table_names=1 --transaction-isolation=READ-COMMITTED    \
         '                                                                      ;
@@ -67,11 +67,11 @@ jobs:                                                                          #
         volumes='                                                              \
           -v ./mysql/init:/docker-entrypoint-initdb.d/:ro                      \
         '                                                                      ;
-        ########################################################################
+        
         image=mysql:5.6                                                        ;
-        ########################################################################
+        
         _docker_run                                                            ;
-        ########################################################################
+        
         command='                                                              \
         '                                                                      ;
         environment='                                                          \
@@ -86,11 +86,11 @@ jobs:                                                                          #
         '                                                                      ;
         volumes='                                                              \
         '                                                                      ;
-        ########################################################################
+        
         image=phpmyadmin/phpmyadmin                                            ;
-        ########################################################################
+        
         _docker_run                                                            ;
-        ########################################################################
+        
         command='                                                              \
         '                                                                      ;
         environment='                                                          \
@@ -102,11 +102,11 @@ jobs:                                                                          #
         '                                                                      ;
         volumes='                                                              \
         '                                                                      ;
-        ########################################################################
+        
         image=$GITHUB_REPOSITORY:$release-testing-$name                        ;
-        ########################################################################
+        
         _docker_run                                                            ;
-        ########################################################################
+        
         command='                                                              \
         '                                                                      ;
         environment='                                                          \
@@ -118,11 +118,11 @@ jobs:                                                                          #
         '                                                                      ;
         volumes='                                                              \
         '                                                                      ;
-        ########################################################################
+        
         image=$GITHUB_REPOSITORY:$release-testing-$name                        ;
-        ########################################################################
+        
         _docker_run                                                            ;
-        ########################################################################
+        
         command='                                                              \
         '                                                                      ;
         environment='                                                          \
@@ -136,26 +136,26 @@ jobs:                                                                          #
         volumes='                                                              \
           -v ./proxy/conf:/etc/nginx                                           \
         '                                                                      ;
-        ########################################################################
+        
         image=nginx:alpine                                                     ;
-        ########################################################################
+        
         _docker_run                                                            ;
-        ########################################################################
+        
         for app in angular db db_admin proxy tomcat                            ;
           do                                                                   \
             docker exec $app ps
           done                                                                 ;
-        ########################################################################
+        
         for app in angular db db_admin proxy tomcat                            ;
           do                                                                   \
             docker logs $app
           done                                                                 ;
-        ########################################################################
+        
         for app in angular db db_admin proxy tomcat                            ;
           do                                                                   \
             docker exec $app netstat -ltn
           done                                                                 ;
-        ########################################################################
+        
         while true                                                             ;
           do                                                                   \
             sleep 10                                                           ;
@@ -166,7 +166,7 @@ jobs:                                                                          #
             sleep 10                                                           ;
             docker exec hasher netstat -tln | grep 8080 && break               ;
           done                                                                 ;
-        ########################################################################
+        
         while true                                                             ;
           do                                                                   \
             sleep 10                                                           ;
@@ -177,7 +177,7 @@ jobs:                                                                          #
             sleep 10                                                           ;
             docker exec rng netstat -tln | grep 8080 && break                  ;
           done                                                                 ;
-        ########################################################################
+        
         while true                                                             ;
           do                                                                   \
             sleep 10                                                           ;
@@ -188,13 +188,13 @@ jobs:                                                                          #
             sleep 10                                                           ;
             docker ps | grep node.*8080.*webui && break                        ;
           done                                                                 ;
-        ########################################################################
+        
         while true                                                             ;
           do                                                                   \
             sleep 10                                                           ;
             docker exec worker ps | grep python && break                       ;
           done                                                                 ;
-        ########################################################################
+        
   swarm:                                                                       #
     env:                                                                       #
       mode: swarm                                                              #
