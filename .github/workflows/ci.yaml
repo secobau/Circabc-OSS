@@ -19,7 +19,7 @@ jobs:                                                                          #
     - name: test                                                               #
       run: |                                                                   #
         set -x                                                                 ;
-                                                                               #
+        ########################################################################
         function _docker_run {                                                 \
           docker run                                                           \
             -d                                                                 \
@@ -33,8 +33,9 @@ jobs:                                                                          #
                                                                                ;
         }                                                                      ;
                                                                                #
-        branch=$(basename $GITHUB_REF)                                         ;
-        project=$(basename $GITHUB_REPOSITORY)                                 ;
+        branch=$( basename $GITHUB_REF )                                       ;
+        project=$( basename $GITHUB_REPOSITORY | tr A-Z a-z )                  ;
+        repository=$( echo ${GITHUB_REPOSITORY} | tr A-Z a-z )                 ;
                                                                                #
         dir=circabc-docker                                                     ;
                                                                                #
@@ -44,8 +45,7 @@ jobs:                                                                          #
                                                                                #
         for app in angular tomcat                                              ;
           do                                                                   \
-            docker build -t $GITHUB_REPOSITORY:$release-testing-$app           \
-              $dir/$app/                                                       ;
+            docker build -t ${repository}:${release}-testing-${app} $dir/$app/ ;                                                     ;
           done                                                                 ;
                                                                                #
         for app in angular db db_admin proxy tomcat                            ;
